@@ -2,21 +2,27 @@ const { Client } = require("pg");
 
 const client = new Client("postgres://localhost:5432/juicebox_database");
 
+async function getAllUsers() {
+  const { rows } = await client.query(
+    `SELECT id, username 
+    FROM users;
+  `
+  );
 
+  return rows;
+}
 
-async function createUser({ 
-  username, 
-  password,
-  name,
-  location
-}) {
+async function createUser({ username, password, name, location }) {
   try {
-    const { rows } = await client.query(`
-      INSERT INTO users(username, password, name, location) 
-      VALUES($1, $2, $3, $4) 
-      ON CONFLICT (username) DO NOTHING 
-      RETURNING *;
-    `, [username, password, name, location]);
+    const { rows } = await client.query(
+      `
+        INSERT INTO users(username, password, name, location) 
+        VALUES($1, $2, $3, $4) 
+        ON CONFLICT (username) DO NOTHING 
+        RETURNING *;
+      `,
+      [username, password, name, location]
+    );
 
     return rows;
   } catch (error) {
@@ -24,20 +30,39 @@ async function createUser({
   }
 }
 
-async function getAllUsers() {
-  const { rows } = await client.query(
-    `SELECT id, username, name, location, active
-    FROM users;
-  `);
+async function updateUser(id, fields = {}) {
+  // build the set string
+  const setString = Object.keys(fields)
+    .map((key, index) => `"${key}"=$${index + 1}`)
+    .join(", ");
 
-  return rows;
+  // return early if this is called without fields
+  if (setString.length === 0) {
+    return;
+  }
+
+  try {
+    const {
+      rows: [user],
+    } = await client.query(
+      `
+        UPDATE users
+        SET ${setString}
+        WHERE id=${id}
+        RETURNING *;
+      `,
+      []
+    );
+
+    return user;
+  } catch (error) {
+    throw error;
+  }
 }
-
 
 module.exports = {
   client,
+  getAllUsers,
   createUser,
-  getAllUsers
-}
-
-
+  updateUser,
+};
