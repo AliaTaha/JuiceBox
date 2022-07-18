@@ -145,6 +145,7 @@ async function createInitialPosts() {
       content:"This is my new post. I hope I love writing blogs as much as I love writing them."
     });
     console.log("Finished creating posts!");
+
   } catch (error) {
     console.error("Error creating posts!");
     throw error;

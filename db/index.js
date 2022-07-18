@@ -89,7 +89,6 @@ async function createPost({ authorId, title, content }) {
       `
       INSERT INTO posts("authorId", title, content) 
         VALUES($1, $2, $3) 
-        ON CONFLICT (username) DO NOTHING 
         RETURNING *;
     `,
       [authorId, title, content]
