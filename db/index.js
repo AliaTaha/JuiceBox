@@ -81,6 +81,7 @@ async function createUser({ username, password, name, location }) {
     throw error;
   }
 }
+
 async function createPost({ authorId, title, content }) {
   try {
     const {
@@ -159,6 +160,54 @@ async function updatePost(id, fields = {}) {
     throw error;
   }
 }
+
+
+async function createTags(tagList) {
+  if (tagList.length === 0) { 
+    return; 
+  }
+
+
+  // need something like: $1), ($2), ($3 
+  const insertValues = tagList.map(
+
+
+    (_, index) => `$${index + 1}`).join('), (');
+  // then we can use: (${ insertValues }) in our string template
+
+  // need something like $1, $2, $3
+  const selectValues = tagList.map(
+    (_, index) => `$${index + 1}`).join(', ');
+  // then we can use (${ selectValues }) in our string template
+
+  try {
+    const {
+      rows: [tags],
+    } = await client.query(
+      `
+      INSERT INTO tags(name) 
+        VALUES ($1), ($2), ($3) 
+        ON CONFLICT (name) DO NOTHING
+        
+    `,
+      [tagList]
+    );
+    await client.query(
+      `
+      SELECT * FROM tags
+      WHERE name
+      IN ($1), ($2), $3);
+        
+    `,
+      [tagList]
+    );
+
+    return post;
+  } catch (error) {
+    throw error;
+  }
+}
+
 
 module.exports = {
   client,
