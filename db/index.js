@@ -197,13 +197,40 @@ async function createTags(tagList) {
       SELECT * FROM tags
       WHERE name
       IN ($1), ($2), $3);
-        
     `,
       [tagList]
     );
 
-    return post;
+    return tags;
   } catch (error) {
+    throw error;
+  }
+}
+
+async function createPostTag(postId, tagId) {
+  try{
+    await client.query(
+    `
+    INSERT INTO post_tags("postId", "tagId")
+      VALUES ($1, $2)
+      ON CONFLICT ("postId", "tagId") DO NOTHING
+  `,
+    [postId, tagId]
+  )}catch (error) {
+    throw error;
+  }
+}
+
+
+
+async function addTagsToPost( postId, tagList) {
+  try {
+    const createPostTagPromises = tagList.map(
+      tag => createPostTag(postId, tag.id)
+    );
+    await Promise.all(createPostTagPromises);
+    return await getPostById(postId);
+  }catch(error) {
     throw error;
   }
 }
@@ -219,4 +246,7 @@ module.exports = {
   getAllPosts,
   getPostsByUser,
   getUserById,
+  createTags,
+  createPostTag,
+  addTagsToPost,
 };

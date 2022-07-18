@@ -5,9 +5,10 @@ const {
   updateUser,
   createPost,
   getAllPosts,
-
   getUserById,
   updatePost,
+  createTags,
+  createPostTag,
 } = require("./index");
 
 async function testDB() {
