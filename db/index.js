@@ -1,4 +1,5 @@
 const { Client } = require("pg");
+const { rows } = require("pg/lib/defaults");
 
 const client = new Client("postgres://localhost:5432/juicebox_database");
 
@@ -31,10 +32,16 @@ async function getUserById(userId) {
     const {
       rows: [user],
     } = await client.query(`
-    
-    `
+    SELECT id, username, name, location, active     
+    FROM users
+    WHERE id=${userId};
+    `);
 
+if (rows.length === 0) {
+  return null
   }
+  
+
 }
 
 async function getPostsByUser(userId) {
@@ -158,4 +165,5 @@ module.exports = {
   updatePost,
   getAllPosts,
   getPostsByUser,
+  getUserById,
 };

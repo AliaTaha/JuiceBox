@@ -6,6 +6,7 @@ const {
   createPost,
   getAllPosts,
   getPostsByUser,
+  getUserById,
 } = require("./index");
 
 async function testDB() {
