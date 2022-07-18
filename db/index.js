@@ -16,7 +16,7 @@ async function getAllUsers() {
 async function getAllPosts() {
   try {
     const { rows } = await client.query(
-      `SELECT title, content 
+      `SELECT * 
       FROM posts;
     `
     );
@@ -28,7 +28,7 @@ async function getAllPosts() {
 }
 
 async function getUserById(userId) {
-  try {
+  try{
     const {
       rows: [user],
     } = await client.query(`
@@ -36,13 +36,18 @@ async function getUserById(userId) {
     FROM users
     WHERE id=${userId};
     `);
-
 if (rows.length === 0) {
   return null
   }
-  
+  delete user.password
+  user.posts = await getPostsByUser(userId)
+  return user;
 
+}catch(error) {
+  throw error;
 }
+}
+
 
 async function getPostsByUser(userId) {
   try {
