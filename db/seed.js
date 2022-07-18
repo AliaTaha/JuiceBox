@@ -1,4 +1,12 @@
-const { client, getAllUsers, createUser, updateUser } = require("./index");
+const {
+  client,
+  getAllUsers,
+  createUser,
+  updateUser,
+  createPost,
+  getAllPosts,
+  getPostsByUser,
+} = require("./index");
 
 async function testDB() {
   try {
@@ -26,8 +34,10 @@ async function dropTables() {
   try {
     console.log("Starting to drop tables...");
     await client.query(`
+     DROP TABLE IF EXISTS posts;
      DROP TABLE IF EXISTS users;
     `);
+
     console.log("Finished dropping tables!");
   } catch (error) {
     console.error("Error dropping tables!");
@@ -45,6 +55,15 @@ async function createTables() {
       password varchar(255) NOT NULL,
       name varchar(255) NOT NULL,
       location varchar(255) NOT NULL,
+      active BOOLEAN DEFAULT true
+    );`);
+
+    await client.query(`
+    CREATE TABLE posts (
+      id SERIAL PRIMARY KEY,
+      "authorId" INTEGER REFERENCES users(id) NOT NULL,
+      title VARCHAR(255) NOT NULL,
+      content TEXT NOT NULL,
       active BOOLEAN DEFAULT true
     );`);
     console.log("Finished building tables!");
