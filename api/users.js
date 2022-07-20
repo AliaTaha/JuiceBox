@@ -39,7 +39,6 @@ usersRouter.post("/login", async (req, res, next) => {
         { id: user.id, username: user.username },
         process.env.JWT_SECRET
       );
-      console.log(token);
       res.send({ message: "you're logged in!", token: token });
     } else {
       next({

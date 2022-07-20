@@ -1,20 +1,13 @@
 const express = require("express");
-require("dotenv").config();
-const apiRouter = express.Router();
-
 const usersRouter = require("./users");
-apiRouter.use("/users", usersRouter);
-
 const postsRouter = require("./posts");
-apiRouter.use("/posts", postsRouter);
-
 const tagsRouter = require("./tags");
-apiRouter.use("/tags", tagsRouter);
-
 const jwt = require("jsonwebtoken");
 const { getUserById } = require("../db");
-
+require("dotenv").config();
 const { JWT_SECRET } = process.env;
+
+const apiRouter = express.Router();
 
 
 // set `req.user` if possible
@@ -31,8 +24,8 @@ apiRouter.use(async (req, res, next) => {
     try {
 
       const { id } = jwt.verify(token, JWT_SECRET);
-
       if (id) {
+
         req.user = await getUserById(id);
         next();
       }
@@ -61,5 +54,12 @@ apiRouter.use((error, req, res, next) => {
     message: error.message,
   });
 });
+
+apiRouter.use("/users", usersRouter);
+
+apiRouter.use("/posts", postsRouter);
+
+apiRouter.use("/tags", tagsRouter);
+
 
 module.exports = apiRouter;
