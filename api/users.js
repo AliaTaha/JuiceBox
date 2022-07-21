@@ -1,8 +1,9 @@
 const express = require("express");
 const usersRouter = express.Router();
-const { getAllUsers, getUserByUsername, createUser } = require("../db");
+const { getAllUsers, getUserByUsername, createUser, getUserById, updateUser } = require("../db");
 const jwt = require("jsonwebtoken");
 const { JWT_SECRET } = process.env;
+const { requireUser, requireActiveUser } = require("./utils");
 
 usersRouter.use((req, res, next) => {
   console.log("A request is being made to /users");
@@ -86,6 +87,55 @@ usersRouter.post('/register', async (req, res, next) => {
   } catch ({ name, message }) {
     next({ name, message })
   } 
+});
+
+usersRouter.delete('/:userId', requireUser, async (req, res, next) => {
+  try {
+
+    const userToDelete = await getUserById(req.params.userId);
+    
+    if (userToDelete && userToDelete.id === req.user.id) {
+      const updatedUser = await updateUser(userToDelete.id, {active : false}) 
+      res.send({ user: updatedUser });
+    } else {
+      next(userToDelete ? { 
+        name: "UnauthorizedUserError",
+        message: "You cannot delete an user that's not yours"
+      } : {
+        name: "UserNotFoundError",
+        message: "That user does not exist"
+      });
+    }
+  } catch ({ name, message }) {
+    next({ name, message })
+  }
+});
+
+usersRouter.patch("/:userId", requireUser, async (req, res, next) => {
+  const { userId } = req.params;
+  const { active } = req.body;
+
+  const updateFields = {};
+
+  if (active) {
+    updateFields.active = active;
+  }
+  
+  try {
+    const originalUser = await getUserById(userId);
+
+    if (originalUser.id === req.user.id) {
+      const updatedUser = await updateUser(userId, updateFields);
+      res.send({ post: updatedUser });
+    } else {
+      next({
+        name: "UnauthorizedUserError",
+        message: "You cannot update an user that is not yours",
+      });
+    }
+  } catch ({ name, message}) {
+    next({ name, message });
+  }
 });
 
 module.exports = usersRouter;
